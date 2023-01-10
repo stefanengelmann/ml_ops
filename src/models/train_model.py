@@ -3,12 +3,15 @@ import sys
 import pickle
 import os
 import matplotlib.pyplot as plt
+import wandb
 import torch
 torch.manual_seed(42)
 
 from model import MyAwesomeModel
 sys.path.append('./src/data')
 from make_dataset import CorruptMnist
+
+wandb.init(project="ml_ops",entity="stefanengelmann10")
 
 def train():
     print("Training day and night")
@@ -34,6 +37,12 @@ def train():
     model = MyAwesomeModel()
     model = model.to(device)
 
+    wandb.config = {
+            "learning_rate": args.lr,
+            "epochs": args.epochs,
+            "batch_size": args.batch_size
+                    }
+
     os.chdir('./data/processed')
 
     with open('dataset_train.pt', 'rb') as f:
@@ -55,6 +64,7 @@ def train():
             loss.backward()
             optimizer.step()
             loss_tracker.append(loss.item())
+            wandb.log({"Train loss":loss.item()})
         print(f"Epoch {epoch+1}/{n_epoch}. Loss: {loss}")     
 
     os.chdir('../../models')   
